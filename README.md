@@ -4,5 +4,4 @@ A small and flexible Java webserver using Netty
 
 ## Requirements
 
-- [Java Development Kit/Java Runtime Environment 1.6+][].
-- [Bundler][]
+- Java Development Kit/Java Runtime Environment 1.6+
