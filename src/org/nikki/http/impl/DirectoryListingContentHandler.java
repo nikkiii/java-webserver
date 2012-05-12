@@ -90,6 +90,7 @@ public class DirectoryListingContentHandler extends ContentHandler {
 	public HttpResponse handleRequest(HttpSession session) {
 		File directory = new File(session.getServer().getDocumentRoot(),
 				session.getRequest().getUri());
+        String filePath = session.getRequest().getUri();
 		if (directory.exists()) {
 			List<File> directories = FileUtil.listFiles(directory,
 					new Filter<File>() {
@@ -102,7 +103,7 @@ public class DirectoryListingContentHandler extends ContentHandler {
 			StringBuilder fileList = new StringBuilder();
 			for (File file : directories) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + file.getName()
+						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName()
 								+ "\">" + file.getName() + "</a>/</td>")
 						.append("<td class=\"m\">" + getModified(file)
 								+ "</td>")
@@ -120,7 +121,7 @@ public class DirectoryListingContentHandler extends ContentHandler {
 			Collections.sort(files);
 			for (File file : files) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + file.getName()
+						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName()
 								+ "\">" + file.getName() + "</a></td>")
 						.append("<td class=\"m\">" + getModified(file)
 								+ "</td>")
