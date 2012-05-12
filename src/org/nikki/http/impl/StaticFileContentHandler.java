@@ -1,16 +1,32 @@
+/**
+ * JavaHttpd, the flexible Java webserver
+ * Copyright (C) 2012 Nikki <nikki@nikkii.us>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.nikki.http.impl;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
-import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
-import org.nikki.http.HttpSession;
+import org.nikki.http.net.HttpSession;
+import org.nikki.http.util.FileUtil;
 
 /**
  * The default handler, which serves files from the filesystem directly
@@ -23,40 +39,15 @@ public class StaticFileContentHandler extends ContentHandler {
 	public HttpResponse handleRequest(HttpSession session) {
 		String uri = session.getRequest().getUri();
 		File file = new File(session.getServer().getDocumentRoot(), uri);
-		if(file.exists()) {
+		if(file.exists() && !file.isDirectory()) {
 			HttpResponse response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			try {
-				response.setContent(readFile(file));
+				response.setContent(FileUtil.readFile(file));
 			} catch(IOException e) {
 				response.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			}
 			return response;
 		}
 		return null;
-	}
-	
-	/**
-	 * Read the specified file into a ChannelBuffer objecdt
-	 * 
-	 * @param file
-	 * 			The file to read
-	 * @return
-	 * 			The buffer containing the file contents
-	 * @throws IOException
-	 * 			If an error occurred while reading
-	 */
-	public static ChannelBuffer readFile(File file) throws IOException {
-		ChannelBuffer out = ChannelBuffers.dynamicBuffer();
-		FileInputStream input = new FileInputStream(file);
-		try {
-			byte[] buffer = new byte[1024];
-			int read;
-			while((read = input.read(buffer, 0, buffer.length)) != -1) {
-				out.writeBytes(buffer, 0, read);
-			}
-		} finally {
-			input.close();
-		}
-		return out;
 	}
 }

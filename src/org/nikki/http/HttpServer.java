@@ -1,3 +1,20 @@
+/**
+ * JavaHttpd, the flexible Java webserver
+ * Copyright (C) 2012 Nikki <nikki@nikkii.us>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.nikki.http;
 
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
@@ -16,6 +33,7 @@ import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.nikki.http.configuration.ConfigurationNode;
@@ -24,6 +42,7 @@ import org.nikki.http.impl.ContentHandler;
 import org.nikki.http.impl.ContentManager;
 import org.nikki.http.module.ModuleLoader;
 import org.nikki.http.net.HttpServerPipeline;
+import org.nikki.http.net.HttpSession;
 
 /**
  * A basic HTTP Server implementation
@@ -32,6 +51,16 @@ import org.nikki.http.net.HttpServerPipeline;
  *
  */
 public class HttpServer {
+	
+	/**
+	 * The server software..
+	 */
+	public static final String SERVER_SOFTWARE = "JavaHttpd";
+	
+	/**
+	 * The server version
+	 */
+	public static final String SERVER_VERSION = "0.1";
 	
 	/**
 	 * The logger instance
@@ -49,6 +78,11 @@ public class HttpServer {
 	private ConfigurationNode config;
 	
 	/**
+	 * Popular index files, can be changed in config
+	 */
+	private String[] indexFiles = new String[] {"index.html", "index.htm"};
+	
+	/**
 	 * The module loader
 	 */
 	private ModuleLoader moduleLoader = new ModuleLoader(this);
@@ -62,6 +96,11 @@ public class HttpServer {
 	 * The document root
 	 */
 	private File documentRoot;
+	
+	/**
+	 * Directory listing
+	 */
+	private boolean directoryListingEnabled = false;
 	
 	/**
 	 * The server bootstrap.
@@ -101,6 +140,12 @@ public class HttpServer {
 			documentRoot = new File(server.getString("document_root"));
 		} else {
 			documentRoot = new File("html");
+		}
+		if(server.has("index_file")) {
+			indexFiles = server.getString("index_file").split(" ");
+		}
+		if(server.has("directory_listing")) {
+			directoryListingEnabled = server.getString("directory_listing").equals("enabled");
 		}
 		// Modules, loaded into a single class that can register all resources needed
 		ConfigurationNode modules = config.nodeFor("modules");
@@ -150,8 +195,26 @@ public class HttpServer {
 	 * 			The request if the server should respond by itself, or null if the module will
 	 */
 	public HttpResponse handleRequest(HttpSession session) {
+		HttpRequest request = session.getRequest();
+		//Indexes
+		File requestFile = new File(documentRoot, request.getUri());
+		if(requestFile.isDirectory()) {
+			boolean found = false;
+			for(String string : indexFiles) {
+				File file = new File(documentRoot, request.getUri() + string);
+				if(file.exists()) {
+					request.setUri(request.getUri() + string);
+					found = true;
+					break;
+				}
+			}
+			if(!found) {
+				if(directoryListingEnabled) {
+					return contentManager.getDirectoryListHandler().handleRequest(session);
+				}
+			}
+		}
 		ContentHandler handler = contentManager.getHandlerFor(session.getRequest());
-		
 		HttpResponse response = handler.handleRequest(session);
 		if(response != null || handler.isAsync()) {
 			return response;

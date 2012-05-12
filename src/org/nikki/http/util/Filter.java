@@ -16,55 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.nikki.http.fastcgi;
-
-import org.jboss.netty.buffer.ChannelBuffer;
+package org.nikki.http.util;
 
 /**
- * A finished FastCGI Response
+ * A basic class used to check conditions on an object
  * 
  * @author Nikki
  *
+ * @param <T>
  */
-public class FastCGIResponse {
+public interface Filter<T> {
 	
 	/**
-	 * The original request id
-	 */
-	private int id;
-	
-	/**
-	 * The completed data of the request
-	 */
-	private ChannelBuffer data;
-	
-	/**
-	 * Construct a new response
-	 * @param id
-	 * 			The request id
-	 * @param data
+	 * Check if a condition matches
+	 * @param t
+	 * 			The object
+	 * @return
 	 * 			The response
 	 */
-	public FastCGIResponse(int id, ChannelBuffer data) {
-		this.id = id;
-		this.data = data;
-	}
-
-	/**
-	 * Get the request id
-	 * @return
-	 * 		The request id
-	 */
-	public int getId() {
-		return id;
-	}
-
-	/**
-	 * Get the data buffer
-	 * @return
-	 * 		The ChannelBuffer containing the response data
-	 */
-	public ChannelBuffer getData() {
-		return data;
-	}
+	public boolean accept(T t);
 }
