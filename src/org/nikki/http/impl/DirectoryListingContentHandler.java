@@ -90,7 +90,7 @@ public class DirectoryListingContentHandler extends ContentHandler {
 	public HttpResponse handleRequest(HttpSession session) {
 		File directory = new File(session.getServer().getDocumentRoot(),
 				session.getRequest().getUri());
-        String filePath = session.getRequest().getUri();
+		String filePath = session.getRequest().getUri();
 		if (directory.exists()) {
 			List<File> directories = FileUtil.listFiles(directory,
 					new Filter<File>() {
