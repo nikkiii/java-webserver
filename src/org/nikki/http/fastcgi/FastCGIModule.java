@@ -18,10 +18,6 @@
 
 package org.nikki.http.fastcgi;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
@@ -69,15 +65,20 @@ public class FastCGIModule extends ContentModule {
 	 * The current request id, I learned the hard way, thread safety is a must...
 	 */
 	private int requestId = 0;
-
-	@Override
-	public void onLoad(ConfigurationNode configuration) throws ModuleLoadingException {
+	
+	/**
+	 * Class constructor
+	 */
+	public FastCGIModule() {
 		bootstrap = new ClientBootstrap(
 				new NioClientSocketChannelFactory(
 						Executors.newCachedThreadPool(),
 						Executors.newCachedThreadPool()));
 		bootstrap.setPipelineFactory(new FastCGIPipeline(this));
-		
+	}
+
+	@Override
+	public void onLoad(ConfigurationNode configuration) throws ModuleLoadingException {
 		String host = "127.0.0.1";
 		int port = 9123;
 		if(configuration.has("address")) {
@@ -94,26 +95,10 @@ public class FastCGIModule extends ContentModule {
 			if(!spawnConfig.has("bin-path")) {
 				throw new ModuleLoadingException("No binary path!");
 			}
-			int children = 4;
-			if(spawnConfig.has("children")) {
-				children = spawnConfig.getInteger("children");
-			}
-			try {
-				Process p = Runtime.getRuntime().exec("/bin/sh spawn-fcgi -d \""+new File("scripts").getAbsolutePath()+"\" -p "+port+" -C "+children+" "+spawnConfig.getString("bin-path"));
-				BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-				while(true) {
-					String line = reader.readLine();
-					if(line == null)
-						break;
-					System.out.println("- "+line);
-				}
-				reader.close();
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			//TODO SpawnFcgi/Windows equiv here
 		}
 		
+		//TODO messy connection :(
 		connect();
 		
 		FastCGIContentHandler handler = new FastCGIContentHandler(this);
@@ -138,6 +123,7 @@ public class FastCGIModule extends ContentModule {
 				if(arg0.isSuccess()) {
 					channel = arg0.getChannel();
 				} else {
+					//TODO disable the module or something...
 					arg0.getCause().printStackTrace();
 				}
 			}

@@ -130,6 +130,7 @@ public class ConfigurationParser {
 				if(key.equals("include_file")) {
 					ConfigurationParser parser = new ConfigurationParser(new File(file.getParentFile(), value));
 					parser.parse(node);
+					parser.close();
 				} else {
 					node.set(key, value);
 				}

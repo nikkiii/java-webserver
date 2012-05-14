@@ -18,7 +18,7 @@
 
 package org.nikki.http.module;
 
-import org.nikki.http.impl.ContentHandler;
+import org.nikki.http.content.ContentHandler;
 
 /**
  * A module for extensions that serve files, such as FastCGI -> PHP and SCGI
