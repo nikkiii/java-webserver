@@ -24,7 +24,6 @@ import static org.nikki.http.fastcgi.FastCGIConstants.FCGI_STDERR;
 import static org.nikki.http.fastcgi.FastCGIConstants.FCGI_STDOUT;
 
 import java.util.HashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -82,7 +81,6 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 	 */
 	public FastCGIDecoder() {
 		super(ResponseState.VERSION);
-		logger.setLevel(Level.ALL);
 	}
 	
 	@Override
