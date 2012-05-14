@@ -219,7 +219,7 @@ public class HttpServer {
 		if(response != null || handler.isAsync()) {
 			return response;
 		}
-		//TODO 404 page
+		//TODO This is temporary, if we return a 404 response the session sendHttpResponse method should read the error file
 		response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
 		response.setContent(ChannelBuffers.copiedBuffer(response.getStatus().toString() + session.getRequest().getUri(), Charset.forName("UTF-8")));
 		return response;

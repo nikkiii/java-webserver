@@ -27,11 +27,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.util.CharsetUtil;
 import org.nikki.http.HttpServer;
 import org.nikki.http.util.FileUtil;
@@ -80,8 +78,6 @@ public class HttpSession {
 		HttpResponse response = server.handleRequest(this);
 		if(response != null) {
 			sendHttpResponse(response);
-		} else {
-			sendHttpResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND));
 		}
 	}
 	

@@ -145,6 +145,9 @@ public class FastCGIModule extends ContentModule {
 		});
 	}
 	
+	/**
+	 * Called when the server unloads the module
+	 */
 	public void onUnload() {
 		if(channel != null) {
 			channel.close();
@@ -160,7 +163,7 @@ public class FastCGIModule extends ContentModule {
 	 */
 	public HttpResponse handle(HttpSession session) {
 		if(!channel.isConnected()) {
-			//TODO cheap hack for max requests
+			//TODO cheap hack for max requests, we should make a callback for connect() so we can make it finish our request
 			connect();
 			throw new IllegalArgumentException("Invalid fastcgi socket!");
 		}
@@ -190,6 +193,6 @@ public class FastCGIModule extends ContentModule {
 	 * 			The session attached to the id
 	 */
 	public HttpSession getRequest(int id) {
-		return requests.get(id);
+		return requests.remove(id);
 	}
 }

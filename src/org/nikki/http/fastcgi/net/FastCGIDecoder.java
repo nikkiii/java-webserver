@@ -24,6 +24,7 @@ import static org.nikki.http.fastcgi.FastCGIConstants.FCGI_STDERR;
 import static org.nikki.http.fastcgi.FastCGIConstants.FCGI_STDOUT;
 
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -64,12 +65,12 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 	/**
 	 * Request length
 	 */
-	private int length;
+	private int contentLength;
 	
 	/**
 	 * Request padding, if any
 	 */
-	private int padding;
+	private int paddingLength;
 	
 	/**
 	 * The data from each request, store it until we have all the data, then dispatch to the handler
@@ -81,6 +82,7 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 	 */
 	public FastCGIDecoder() {
 		super(ResponseState.VERSION);
+		logger.setLevel(Level.ALL);
 	}
 	
 	@Override
@@ -89,67 +91,68 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 			throws Exception {
 		switch(state) {
 		case VERSION:
-			//If there's padding on the last request we need to skip it
-			if(padding > 0) {
-				buffer.skipBytes(padding);
-			}
 			version = buffer.readByte();
 			checkpoint(ResponseState.HEADER);
 		case HEADER:
-			type = buffer.readByte();
-			id = buffer.readShort();
-			length = buffer.readShort() & 0xffff;
-			padding = buffer.readByte();
+			//The types are unsigned in the FCGI docs
+			type = buffer.readByte() & 0xFF;
+			id = buffer.readShort() & 0xFFFF;
+			contentLength = buffer.readShort() & 0xFFFF;
+			paddingLength = buffer.readByte() & 0xFFFF;
 			buffer.readByte(); //Reserved byte...
+			logger.finest("Read request header : type="+type+",id="+id+",contentLength="+contentLength+",paddingLength="+paddingLength);
 			checkpoint(ResponseState.CONTENT);
 		case CONTENT:
 			switch(type) {
 			case FCGI_END_REQUEST:
 				//Statuses, don't know what the correct use is, but FCGI_REQUEST_COMPLETE is one, and there's another status code...
 				int appStatus = buffer.readInt();
-				int pStatus = buffer.readByte();
+				int protocolStatus = buffer.readByte();
 				//Reserved bytes
 				buffer.skipBytes(3);
-				if(appStatus != 0 || pStatus != FCGI_REQUEST_COMPLETE) {
+				if(appStatus != 0 || protocolStatus != FCGI_REQUEST_COMPLETE) {
 					//Uh oh, when we run a pool of connections we should close this one here...
-				} else if(pStatus == FCGI_REQUEST_COMPLETE) {
-					//Get the request buffer and return a response (We need to store it in case of multiple requests)
-					ChannelBuffer dataBuffer = dataBuffers.get(id);
-					dataBuffers.remove(id);
+					logger.warning("Protocol status "+protocolStatus);
+				} else if(protocolStatus == FCGI_REQUEST_COMPLETE) {
+					//Reset the version
 					checkpoint(ResponseState.VERSION);
-					return new FastCGIResponse(id, dataBuffer);
+					//Merged from ChannelBuffer buffer ... dataBuffers.remove to this, remove() returns the object
+					return new FastCGIResponse(id, dataBuffers.remove(id));
 				}
 				checkpoint(ResponseState.VERSION);
 				break;
 			case FCGI_STDOUT:
-				if(length == 0) {
-					if(padding > 0)
-						buffer.skipBytes(padding);
-				} else {
+				if(contentLength > 0) {
 					//Have to store it, just in case we get a new request
 					if(!dataBuffers.containsKey(id)) {
 						dataBuffers.put(id, ChannelBuffers.dynamicBuffer());
 					}
-					logger.finest("Got "+length+" bytes for request "+id);
-					//Messy, the handler needs to be redone
-					dataBuffers.get(id).writeBytes(buffer.readBytes(length));
+					logger.finest("Got "+contentLength+" bytes for request "+id);
+					//Write the bytes to the buffer
+					dataBuffers.get(id).writeBytes(buffer.readBytes(contentLength));
+					//Checkpoint!
 					checkpoint(ResponseState.VERSION);
 				}
 				break;
-			//solaroperator pointed out this never contains HTML, could've been a bug with the length being signed
+			//solaroperator pointed out this never contains HTML, I forgot a checkpoint so it stayed STDERR even with 0 bytes
 			case FCGI_STDERR:
-				byte[] err = new byte[length];
+				byte[] err = new byte[contentLength];
 				buffer.readBytes(err);
 				
+				//TODO error logs
 				logger.warning(new String(err));
 				
-				if(padding > 0)
-					buffer.skipBytes(padding);
+				//In the original version where this was commented out, this was never here, causing all data to go into STDERR
+				checkpoint(ResponseState.VERSION);
 				break;
 			default:
 				logger.warning("Unknown type "+type);
 				checkpoint(ResponseState.VERSION);
 				break;
+			}
+			if(paddingLength > 0) {
+				logger.finest("Skipping "+paddingLength+" bytes of padding");
+				buffer.skipBytes(paddingLength);
 			}
 			break;
 		}
