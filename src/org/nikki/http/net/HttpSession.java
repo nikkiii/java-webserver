@@ -27,9 +27,9 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.util.CharsetUtil;
 import org.nikki.http.HttpServer;
 import org.nikki.http.util.FileUtil;
@@ -98,12 +98,16 @@ public class HttpSession {
 				try {
 					res.setContent(FileUtil.readFile(file));
 				} catch(IOException e) {
-					res.setStatus(HttpResponseStatus.INTERNAL_SERVER_ERROR);
+					res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
+					setContentLength(res, res.getContent().readableBytes());
 				}
 			} else {
 				res.setContent(ChannelBuffers.copiedBuffer(res.getStatus().toString(), CharsetUtil.UTF_8));
-				setContentLength(res, res.getContent().readableBytes());
 			}
+		}
+		//Content length should always be set, if it isn't the getContentLength method will return 0
+		if(HttpHeaders.getContentLength(res) == 0L) {
+			HttpHeaders.setContentLength(res, res.getContent().readableBytes());
 		}
 		channel.write(res).addListener(ChannelFutureListener.CLOSE);
 	}
@@ -133,5 +137,9 @@ public class HttpSession {
 	 */
 	public HttpRequest getRequest() {
 		return request;
+	}
+	
+	public String sanitizeUri(String uri) {
+		return uri;
 	}
 }

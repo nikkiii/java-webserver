@@ -23,14 +23,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -196,8 +194,23 @@ public class HttpServer {
 	 */
 	public HttpResponse handleRequest(HttpSession session) {
 		HttpRequest request = session.getRequest();
-		//Indexes
+		//Construct the file path here
 		File requestFile = new File(documentRoot, request.getUri());
+		
+		//Netty doesn't do it's own verification of URIs
+		try {
+			//Such a small method was overlooked and one of the testers found my bash history/passwd file using it, oops...
+			if(!requestFile.getCanonicalPath().startsWith(documentRoot.getAbsolutePath())) {
+				return new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+			}
+		} catch (IOException e) {
+			//If there are any problems, we don't want to serve it, no matter what security is the #1 priority
+			return new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+		}
+
+		//Phew, now that the verification is done...
+		
+		//Indexes
 		if(requestFile.isDirectory()) {
 			boolean found = false;
 			for(String string : indexFiles) {
@@ -219,12 +232,15 @@ public class HttpServer {
 		if(response != null || handler.isAsync()) {
 			return response;
 		}
-		//TODO This is temporary, if we return a 404 response the session sendHttpResponse method should read the error file
-		response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-		response.setContent(ChannelBuffers.copiedBuffer(response.getStatus().toString() + session.getRequest().getUri(), Charset.forName("UTF-8")));
-		return response;
+		//If not, return a 404, the HttpSession method will convert this into an error file if needed
+		return new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND);
 	}
 	
+	/**
+	 * The main entry point
+	 * @param args
+	 * 			The commandline args
+	 */
 	public static void main(String[] args) {
 		HttpServer server = new HttpServer();
 		try {
