@@ -112,7 +112,7 @@ public class FastCGIRequest {
 		addHeader("GATEWAY_INTERFACE", "CGI/1.1");
 		addHeader("CONTENT_LENGTH", String.valueOf(contentLength));
 
-		String fileUri = request.getUri().substring(1);
+		String fileUri = request.getUri().substring(0);
 		String queryString = "";
 		if(fileUri.indexOf('?') != -1) {
 			queryString = fileUri.substring(fileUri.indexOf('?')+1);
