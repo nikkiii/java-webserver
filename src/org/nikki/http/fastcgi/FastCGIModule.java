@@ -56,7 +56,7 @@ public class FastCGIModule extends ContentModule {
 	private Channel channel;
 	
 	/**
-	 * The address of the FastCGI Applicatno
+	 * The address of the FastCGI Application
 	 */
 	private InetSocketAddress address;
 

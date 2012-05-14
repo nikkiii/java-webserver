@@ -98,7 +98,7 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 		case HEADER:
 			type = buffer.readByte();
 			id = buffer.readShort();
-			length = buffer.readShort();
+			length = buffer.readShort() & 0xffff;
 			padding = buffer.readByte();
 			buffer.readByte(); //Reserved byte...
 			checkpoint(ResponseState.CONTENT);
@@ -121,7 +121,6 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 				}
 				checkpoint(ResponseState.VERSION);
 				break;
-			case FCGI_STDERR:
 			case FCGI_STDOUT:
 				if(length == 0) {
 					if(padding > 0)
@@ -137,8 +136,8 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 					checkpoint(ResponseState.VERSION);
 				}
 				break;
-			//TODO STDERR sometimes contains HTML...
-			/*case FCGI_STDERR:
+			//solaroperator pointed out this never contains HTML, could've been a bug with the length being signed
+			case FCGI_STDERR:
 				byte[] err = new byte[length];
 				buffer.readBytes(err);
 				
@@ -146,7 +145,7 @@ public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
 				
 				if(padding > 0)
 					buffer.skipBytes(padding);
-				break;*/
+				break;
 			default:
 				logger.warning("Unknown type "+type);
 				checkpoint(ResponseState.VERSION);

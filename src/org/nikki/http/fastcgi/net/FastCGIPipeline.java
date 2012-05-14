@@ -49,7 +49,7 @@ public class FastCGIPipeline implements ChannelPipelineFactory {
 		ChannelPipeline pipeline = Channels.pipeline();
 		pipeline.addLast("decoder", new FastCGIDecoder());
 		pipeline.addLast("encoder", new FastCGIEncoder());
-		pipeline.addLast("handler", new FactCGIChannelHandler(module));
+		pipeline.addLast("handler", new FastCGIChannelHandler(module));
 		return pipeline;
 	}
 }
