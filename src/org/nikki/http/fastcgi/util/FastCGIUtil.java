@@ -57,6 +57,8 @@ public class FastCGIUtil {
 						.substring(0, value.indexOf(' ')))));
 			} else if (key.startsWith("http") || key.startsWith("HTTP")) {
 				// Standard header
+			} else if (key.equalsIgnoreCase("location")) {
+				res.addHeader(key, value);
 			} else
 				res.addHeader(key, value);
 		}

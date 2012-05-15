@@ -214,7 +214,12 @@ public class HttpServer {
 		if(requestFile.isDirectory()) {
 			boolean found = false;
 			//Fix directories that don't end with /, more elegant
-			request.setUri(request.getUri() + (request.getUri().charAt(request.getUri().length()-1) != '/' ? '/' : ""));
+			if(request.getUri().charAt(request.getUri().length()-1) != '/') {
+				HttpResponse redirect = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+				redirect.addHeader("Location", request.getUri() + "/");
+				return redirect;
+			}
+			
 			for(String string : indexFiles) {
 				File file = new File(requestFile, string);
 				if(file.exists()) {
