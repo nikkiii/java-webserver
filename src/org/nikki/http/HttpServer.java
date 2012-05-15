@@ -213,12 +213,12 @@ public class HttpServer {
 		//Indexes
 		if(requestFile.isDirectory()) {
 			boolean found = false;
-			//Fix directories that don't end with /
-			String requestUri = request.getUri() + (request.getUri().charAt(request.getUri().length()-1) != '/' ? '/' : "");
+			//Fix directories that don't end with /, more elegant
+			request.setUri(request.getUri() + (request.getUri().charAt(request.getUri().length()-1) != '/' ? '/' : ""));
 			for(String string : indexFiles) {
 				File file = new File(requestFile, string);
 				if(file.exists()) {
-					request.setUri(requestUri + string);
+					request.setUri(request.getUri() + string);
 					found = true;
 					break;
 				}
