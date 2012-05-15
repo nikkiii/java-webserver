@@ -215,7 +215,7 @@ public class HttpServer {
 			boolean found = false;
 			//Fix directories that don't end with /, more elegant
 			if(request.getUri().charAt(request.getUri().length()-1) != '/') {
-				HttpResponse redirect = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK);
+				HttpResponse redirect = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.TEMPORARY_REDIRECT);
 				redirect.addHeader("Location", request.getUri() + "/");
 				return redirect;
 			}
