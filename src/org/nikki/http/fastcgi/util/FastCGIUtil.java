@@ -52,7 +52,6 @@ public class FastCGIUtil {
 			}
 			
 			if (key.equalsIgnoreCase("status")) {
-				System.out.println("Status: "+value);
 				res.setStatus(HttpResponseStatus.valueOf(Integer.parseInt(value
 						.substring(0, value.indexOf(' ')))));
 			} else if (key.startsWith("http") || key.startsWith("HTTP")) {
