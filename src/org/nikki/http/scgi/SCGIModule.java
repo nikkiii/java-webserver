@@ -26,14 +26,14 @@ import org.nikki.http.module.ModuleLoadingException;
  * A module for SCGI Interaction, will be finished eventually
  * 
  * @author Nikki
- *
+ * 
  */
 public class SCGIModule extends ContentModule {
 
 	@Override
 	public void onLoad(ConfigurationNode node) throws ModuleLoadingException {
 		// TODO SCGI Loading
-		
+
 	}
 
 	@Override

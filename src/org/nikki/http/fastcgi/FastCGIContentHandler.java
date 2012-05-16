@@ -18,17 +18,18 @@
 
 package org.nikki.http.fastcgi;
 
-import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.nikki.http.content.ContentHandler;
+import org.nikki.http.content.HttpResponseException;
 import org.nikki.http.net.HttpSession;
 
 /**
  * A ContentHandler for FastCGI Requests
  * 
  * @author Nikki
- *
+ * 
  */
-public class FastCGIContentHandler extends ContentHandler {
+public class FastCGIContentHandler implements ContentHandler {
 
 	/**
 	 * The FastCGI Module
@@ -36,17 +37,20 @@ public class FastCGIContentHandler extends ContentHandler {
 	private FastCGIModule module;
 
 	/**
-	 * Construct a new ContentHandler which is set to have the server ignore the first response, since the handler will respond with the finished request
+	 * Construct a new ContentHandler which is set to have the server ignore the
+	 * first response, since the handler will respond with the finished request
+	 * 
 	 * @param module
-	 * 			The module
+	 *            The module
 	 */
 	public FastCGIContentHandler(FastCGIModule module) {
-		super(true);
 		this.module = module;
 	}
-	
+
 	@Override
-	public HttpResponse handleRequest(HttpSession session) {
-		return module.handle(session);
+	public void handleRequest(HttpSession session) throws HttpResponseException {
+		if (!module.handle(session)) {
+			throw new HttpResponseException(HttpResponseStatus.BAD_GATEWAY);
+		}
 	}
 }

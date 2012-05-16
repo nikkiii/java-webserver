@@ -26,56 +26,45 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
  * A class to manage Webserver files and content
  * 
  * @author Nikki
- *
+ * 
  */
 public class ContentManager {
-	
+
 	/**
-	 * The basic handler which will serve from the document root, whether it's an HTML/web related file or a download
+	 * The basic handler which will serve from the document root, whether it's
+	 * an HTML/web related file or a download
 	 */
 	private ContentHandler defaultHandler = new StaticFileContentHandler();
-	
+
 	/**
 	 * The handler which will construct directory listings
 	 */
 	private ContentHandler directoryListHandler = new DirectoryListingContentHandler();
-	
+
 	/**
 	 * The map with extensions -> handlers
 	 */
 	private HashMap<String, ContentHandler> handlerExtensions = new HashMap<String, ContentHandler>();
-	
+
 	/**
-	 * TODO Allow mime types of local files once document root system is finished
+	 * TODO Allow mime types of local files once document root system is
+	 * finished
 	 */
-	private HashMap<String, ContentHandler> handlerMimeTypes  = new HashMap<String, ContentHandler>();
-	
+	private HashMap<String, ContentHandler> handlerMimeTypes = new HashMap<String, ContentHandler>();
+
 	/**
 	 * Construct a new Content Manager
 	 */
 	public ContentManager() {
 	}
-	
+
 	/**
-	 * Register an extension to a handler
-	 * @param extension
-	 * 			The extension
-	 * @param handler
-	 * 			The handler
+	 * Get the content handler for Directory Listings
+	 * 
+	 * @return The Directory listing handler
 	 */
-	public void registerExtension(String extension, ContentHandler handler) {
-		handlerExtensions.put(extension, handler);
-	}
-	
-	/**
-	 * Register a mime type to a handler
-	 * @param mimeType
-	 * 			The mime type
-	 * @param handler
-	 * 			The handler
-	 */
-	public void registerMimeType(String mimeType, ContentHandler handler) {
-		handlerMimeTypes.put(mimeType, handler);
+	public ContentHandler getDirectoryListHandler() {
+		return directoryListHandler;
 	}
 
 	/**
@@ -84,29 +73,43 @@ public class ContentManager {
 	 * TODO allow mime type lookup on local files
 	 * 
 	 * @param request
-	 * 			The request
-	 * @return
-	 * 			The handler
+	 *            The request
+	 * @return The handler
 	 */
 	public ContentHandler getHandlerFor(HttpRequest request) {
 		String uri = request.getUri();
-		if(uri.indexOf('?') != -1) {
+		if (uri.indexOf('?') != -1) {
 			uri = uri.substring(0, uri.indexOf('?'));
 		}
-		String extension = uri.substring(uri.lastIndexOf('.')+1);
-		if(handlerExtensions.containsKey(extension)) {
+		String extension = uri.substring(uri.lastIndexOf('.') + 1);
+		if (handlerExtensions.containsKey(extension)) {
 			return handlerExtensions.get(extension);
 		} else {
 			return defaultHandler;
 		}
 	}
-	
+
 	/**
-	 * Get the content handler for Directory Listings
-	 * @return
-	 * 		The Directory listing handler
+	 * Register an extension to a handler
+	 * 
+	 * @param extension
+	 *            The extension
+	 * @param handler
+	 *            The handler
 	 */
-	public ContentHandler getDirectoryListHandler() {
-		return directoryListHandler;
+	public void registerExtension(String extension, ContentHandler handler) {
+		handlerExtensions.put(extension, handler);
+	}
+
+	/**
+	 * Register a mime type to a handler
+	 * 
+	 * @param mimeType
+	 *            The mime type
+	 * @param handler
+	 *            The handler
+	 */
+	public void registerMimeType(String mimeType, ContentHandler handler) {
+		handlerMimeTypes.put(mimeType, handler);
 	}
 }

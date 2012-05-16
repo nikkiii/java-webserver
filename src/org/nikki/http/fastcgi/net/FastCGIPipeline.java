@@ -27,10 +27,9 @@ import org.nikki.http.fastcgi.FastCGIModule;
  * A pipeline factory to attach to a FastCGI Connection
  * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIPipeline implements ChannelPipelineFactory {
-
 
 	/**
 	 * The FastCGI Module instance

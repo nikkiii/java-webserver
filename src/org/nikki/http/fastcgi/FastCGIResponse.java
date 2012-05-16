@@ -24,26 +24,27 @@ import org.jboss.netty.buffer.ChannelBuffer;
  * A finished FastCGI Response
  * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIResponse {
-	
+
 	/**
 	 * The original request id
 	 */
 	private int id;
-	
+
 	/**
 	 * The completed data of the request
 	 */
 	private ChannelBuffer data;
-	
+
 	/**
 	 * Construct a new response
+	 * 
 	 * @param id
-	 * 			The request id
+	 *            The request id
 	 * @param data
-	 * 			The response
+	 *            The response
 	 */
 	public FastCGIResponse(int id, ChannelBuffer data) {
 		this.id = id;
@@ -51,20 +52,20 @@ public class FastCGIResponse {
 	}
 
 	/**
-	 * Get the request id
-	 * @return
-	 * 		The request id
-	 */
-	public int getId() {
-		return id;
-	}
-
-	/**
 	 * Get the data buffer
-	 * @return
-	 * 		The ChannelBuffer containing the response data
+	 * 
+	 * @return The ChannelBuffer containing the response data
 	 */
 	public ChannelBuffer getData() {
 		return data;
+	}
+
+	/**
+	 * Get the request id
+	 * 
+	 * @return The request id
+	 */
+	public int getId() {
+		return id;
 	}
 }

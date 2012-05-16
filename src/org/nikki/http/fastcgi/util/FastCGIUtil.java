@@ -26,16 +26,17 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
  * A small class containing simple methods for parsing headers/etc
  * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIUtil {
-	
+
 	/**
 	 * Parse the headers, and only the headers, off the FastCGI Response buffer
+	 * 
 	 * @param res
-	 * 			The outgoing response object
+	 *            The outgoing response object
 	 * @param buffer
-	 * 			The FastCGI Response buffer
+	 *            The FastCGI Response buffer
 	 */
 	public static void parseHeaders(HttpResponse res, ChannelBuffer buffer) {
 		String line = "", key = "", value = "";
@@ -48,9 +49,9 @@ public class FastCGIUtil {
 				key = line;
 			} else {
 				key = line.substring(0, line.indexOf(':'));
-				value = line.substring(line.indexOf(':')+1).trim();
+				value = line.substring(line.indexOf(':') + 1).trim();
 			}
-			
+
 			if (key.equalsIgnoreCase("status")) {
 				res.setStatus(HttpResponseStatus.valueOf(Integer.parseInt(value
 						.substring(0, value.indexOf(' ')))));
@@ -65,10 +66,10 @@ public class FastCGIUtil {
 
 	/**
 	 * Read a line from the specified ChannelBuffer
+	 * 
 	 * @param buffer
-	 * 			The buffer to read from
-	 * @return
-	 * 			The finished line
+	 *            The buffer to read from
+	 * @return The finished line
 	 */
 	public static String readLine(ChannelBuffer buffer) {
 		StringBuilder lineBuf = new StringBuilder();
@@ -81,10 +82,10 @@ public class FastCGIUtil {
 			lineBuf.append((char) b);
 		}
 
-		if(lineBuf.charAt(0) == '\r') {
+		if (lineBuf.charAt(0) == '\r') {
 			return lineBuf.substring(1);
 		}
-		
+
 		while (lineBuf.charAt(lineBuf.length() - 1) == '\r') {
 			lineBuf.setLength(lineBuf.length() - 1);
 		}

@@ -32,7 +32,7 @@ import org.nikki.http.configuration.ConfigurationNode;
  * A simple module loader
  * 
  * @author Nikki
- *
+ * 
  */
 public class ModuleLoader {
 
@@ -48,11 +48,12 @@ public class ModuleLoader {
 	 * The HTTP Server instance
 	 */
 	private HttpServer server;
-	
+
 	/**
 	 * Construct a new module loader
+	 * 
 	 * @param server
-	 * 			The HTTP Server instance
+	 *            The HTTP Server instance
 	 */
 	public ModuleLoader(HttpServer server) {
 		this.server = server;
@@ -78,7 +79,7 @@ public class ModuleLoader {
 			ServerModule module = (ServerModule) cl.newInstance();
 			module.setServer(server);
 			module.onLoad(configuration);
-			//Register the module
+			// Register the module
 			register(module);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Unable to load module : " + className, e);

@@ -31,35 +31,32 @@ import org.jboss.netty.buffer.ChannelBuffers;
  * A class for dealing with File operations
  * 
  * @author Nikki
- *
+ * 
  */
 public class FileUtil {
 
 	/**
-	 * List the files in a directory with the specified filter
-	 * @param directory
-	 * 			The directory
-	 * @param filter
-	 * 			The filter to check files against
-	 * @return
-	 * 			The file list
+	 * Convert bytes to a human readable format
+	 * 
+	 * @param bytes
+	 *            The number to convert
+	 * @return The formatted string
 	 */
-	public static List<File> listFiles(File directory, Filter<File> filter) {
-		List<File> files = new LinkedList<File>();
-		for(File file : directory.listFiles()) {
-			if(filter.accept(file)) {
-				files.add(file);
-			}
-		}
-		return files;
+	public static String humanReadableByteCount(long bytes) {
+		int unit = 1024;
+		if (bytes < unit)
+			return bytes + " B";
+		int exp = (int) (Math.log(bytes) / Math.log(unit));
+		String pre = "KMGTPE".charAt(exp - 1) + "";
+		return String.format("%.1f %s", bytes / Math.pow(unit, exp), pre);
 	}
 
 	/**
 	 * Get all files in a directory
+	 * 
 	 * @param directory
-	 * 			The directory
-	 * @return
-	 * 			The files
+	 *            The directory
+	 * @return The files
 	 */
 	public static List<File> listFiles(File directory) {
 		return listFiles(directory, new Filter<File>() {
@@ -72,29 +69,32 @@ public class FileUtil {
 	}
 
 	/**
-	 * Convert bytes to a human readable format
-	 * @param bytes
-	 * 			The number to convert
-	 * @return
-	 * 			The formatted string
+	 * List the files in a directory with the specified filter
+	 * 
+	 * @param directory
+	 *            The directory
+	 * @param filter
+	 *            The filter to check files against
+	 * @return The file list
 	 */
-	public static String humanReadableByteCount(long bytes) {
-	    int unit = 1024;
-	    if (bytes < unit) return bytes + " B";
-	    int exp = (int) (Math.log(bytes) / Math.log(unit));
-	    String pre = "KMGTPE".charAt(exp-1) + "";
-	    return String.format("%.1f %s", bytes / Math.pow(unit, exp), pre);
+	public static List<File> listFiles(File directory, Filter<File> filter) {
+		List<File> files = new LinkedList<File>();
+		for (File file : directory.listFiles()) {
+			if (filter.accept(file)) {
+				files.add(file);
+			}
+		}
+		return files;
 	}
-	
+
 	/**
 	 * Read the specified file into a ChannelBuffer objecdt
 	 * 
 	 * @param file
-	 * 			The file to read
-	 * @return
-	 * 			The buffer containing the file contents
+	 *            The file to read
+	 * @return The buffer containing the file contents
 	 * @throws IOException
-	 * 			If an error occurred while reading
+	 *             If an error occurred while reading
 	 */
 	public static ChannelBuffer readFile(File file) throws IOException {
 		ChannelBuffer out = ChannelBuffers.dynamicBuffer();
@@ -102,7 +102,7 @@ public class FileUtil {
 		try {
 			byte[] buffer = new byte[1024];
 			int read;
-			while((read = input.read(buffer, 0, buffer.length)) != -1) {
+			while ((read = input.read(buffer, 0, buffer.length)) != -1) {
 				out.writeBytes(buffer, 0, read);
 			}
 		} finally {

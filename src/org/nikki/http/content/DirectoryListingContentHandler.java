@@ -45,9 +45,9 @@ import org.nikki.http.util.Filter;
  * A ContentHandler to handle directory listings
  * 
  * @author Nikki
- *
+ * 
  */
-public class DirectoryListingContentHandler extends ContentHandler {
+public class DirectoryListingContentHandler implements ContentHandler {
 
 	/**
 	 * Load it into memory, it's not a big deal
@@ -58,7 +58,7 @@ public class DirectoryListingContentHandler extends ContentHandler {
 	 * The file name map used for getting content types
 	 */
 	private FileNameMap fileNameMap = URLConnection.getFileNameMap();
-	
+
 	/**
 	 * The date modified format
 	 */
@@ -86,8 +86,30 @@ public class DirectoryListingContentHandler extends ContentHandler {
 		}
 	}
 
+	/**
+	 * Get the mime type for the file
+	 * 
+	 * @param fileName
+	 *            The file name
+	 * @return The file type
+	 */
+	public String getMimeType(String fileName) {
+		return fileNameMap.getContentTypeFor(fileName);
+	}
+
+	/**
+	 * Format the file's modified time for the page
+	 * 
+	 * @param file
+	 *            The file
+	 * @return The formatted timestamp
+	 */
+	public String getModified(File file) {
+		return format.format(new Date(file.lastModified()));
+	}
+
 	@Override
-	public HttpResponse handleRequest(HttpSession session) {
+	public void handleRequest(HttpSession session) throws HttpResponseException {
 		File directory = new File(session.getServer().getDocumentRoot(),
 				session.getRequest().getUri());
 		String filePath = session.getRequest().getUri();
@@ -103,10 +125,8 @@ public class DirectoryListingContentHandler extends ContentHandler {
 			StringBuilder fileList = new StringBuilder();
 			for (File file : directories) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName()
-								+ "\">" + file.getName() + "</a>/</td>")
-						.append("<td class=\"m\">" + getModified(file)
-								+ "</td>")
+						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName() + "\">" + file.getName() + "</a>/</td>")
+						.append("<td class=\"m\">" + getModified(file) + "</td>")
 						.append("<td class=\"s\">- &nbsp;</td>")
 						.append("<td class=\"t\">Directory</td>")
 						.append("</tr>").append("\n");
@@ -121,50 +141,31 @@ public class DirectoryListingContentHandler extends ContentHandler {
 			Collections.sort(files);
 			for (File file : files) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName()
-								+ "\">" + file.getName() + "</a></td>")
-						.append("<td class=\"m\">" + getModified(file)
-								+ "</td>")
-						.append("<td class=\"s\">"
-								+ FileUtil.humanReadableByteCount(file.length())
-								+ "</td>")
-						.append("<td class=\"t\">"+getMimeType(file.getName())+"</td>")
+						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName() + "\">" + file.getName() + "</a></td>")
+						.append("<td class=\"m\">" + getModified(file) + "</td>")
+						.append("<td class=\"s\">" + FileUtil.humanReadableByteCount(file.length()) + "</td>")
+						.append("<td class=\"t\">" + getMimeType(file.getName()) + "</td>")
 						.append("</tr>").append("\n");
 			}
 			String string = base.replace("{directory}", session.getRequest()
 					.getUri());
 			string = string.replace("{files}", fileList.toString());
-			string = string.replace("{version}", HttpServer.SERVER_SOFTWARE + " " + HttpServer.SERVER_VERSION);
+			string = string.replace("{version}", HttpServer.SERVER_SOFTWARE
+					+ " " + HttpServer.SERVER_VERSION);
 
 			HttpResponse response = new DefaultHttpResponse(
 					HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			response.setContent(ChannelBuffers.copiedBuffer(string,
 					Charset.forName("UTF-8")));
 			response.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
-			return response;
+
+			// Send the response
+			session.sendHttpResponse(response);
+			
+			//Prevent the error below
+			return;
 		}
-		return null;
-	}
-
-	/**
-	 * Format the file's modified time for the page
-	 * @param file
-	 * 			The file
-	 * @return
-	 * 			The formatted timestamp
-	 */
-	public String getModified(File file) {
-		return format.format(new Date(file.lastModified()));
-	}
-
-	/**
-	 * Get the mime type for the file
-	 * @param fileName
-	 * 			The file name
-	 * @return
-	 * 			The file type
-	 */
-	public String getMimeType(String fileName) {
-		return fileNameMap.getContentTypeFor(fileName);
+		throw new HttpResponseException(
+				HttpResponseStatus.INTERNAL_SERVER_ERROR);
 	}
 }

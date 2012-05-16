@@ -35,7 +35,7 @@ import org.nikki.http.net.HttpSession;
  * A channel handler for FastCGI Requests
  * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIChannelHandler extends SimpleChannelUpstreamHandler {
 
@@ -46,6 +46,7 @@ public class FastCGIChannelHandler extends SimpleChannelUpstreamHandler {
 
 	/**
 	 * Creates a new HTTPChannelHandler.
+	 * 
 	 * @param server
 	 */
 	public FastCGIChannelHandler(FastCGIModule module) {
@@ -53,24 +54,27 @@ public class FastCGIChannelHandler extends SimpleChannelUpstreamHandler {
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+			throws Exception {
 		Object message = e.getMessage();
-		if(message instanceof FastCGIResponse) {
+		if (message instanceof FastCGIResponse) {
 			FastCGIResponse response = (FastCGIResponse) message;
-			
+
 			ChannelBuffer buffer = response.getData();
-			
-			HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
-			
-			//Parse the headers off the buffer, and copy them into the response
+
+			HttpResponse res = new DefaultHttpResponse(HttpVersion.HTTP_1_1,
+					HttpResponseStatus.OK);
+
+			// Parse the headers off the buffer, and copy them into the response
 			FastCGIUtil.parseHeaders(res, buffer);
-			
-			//Set the content to the remaining bytes
+
+			// Set the content to the remaining bytes
 			res.setContent(buffer.readBytes(buffer.readableBytes()));
-			
-			//Get the current session for this response id, and send the response
+
+			// Get the current session for this response id, and send the
+			// response
 			HttpSession session = module.getRequest(response.getId());
-			if(session != null) {
+			if (session != null) {
 				session.sendHttpResponse(res);
 			}
 		}

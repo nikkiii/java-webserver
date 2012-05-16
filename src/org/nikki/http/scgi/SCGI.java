@@ -59,6 +59,19 @@ public class SCGI {
 	/** Used to decode the headers. */
 	public static final Charset ISO_8859_1 = Charset.forName("ISO-8859-1");
 
+	// Taken from nTorrent
+	public static String make(HashMap<String, String> header, String body) {
+		String res = "CONTENT_LENGTH\0" + (body != null ? body.length() : 0)
+				+ "\0SCGI\0" + "1\0";
+		if (header != null) {
+			for (Map.Entry<String, String> entry : header.entrySet())
+				res += entry.getKey() + '\0' + entry.getValue() + '\0';
+		}
+		String size = new Integer(res.getBytes().length) + ":";
+		res += "," + body;
+		return size + res;
+	}
+
 	/**
 	 * Read the <a href="http://python.ca/scgi/protocol.txt">SCGI</a> request
 	 * headers.<br>
@@ -115,18 +128,5 @@ public class SCGI {
 			headers = headers.substring(sep2 + 1);
 		}
 		return env;
-	}
-
-	// Taken from nTorrent
-	public static String make(HashMap<String, String> header, String body) {
-		String res = "CONTENT_LENGTH\0" + (body != null ? body.length() : 0)
-				+ "\0SCGI\0" + "1\0";
-		if (header != null) {
-			for (Map.Entry<String, String> entry : header.entrySet())
-				res += entry.getKey() + '\0' + entry.getValue() + '\0';
-		}
-		String size = new Integer(res.getBytes().length) + ":";
-		res += "," + body;
-		return size + res;
 	}
 }

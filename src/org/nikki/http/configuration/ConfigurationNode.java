@@ -36,15 +36,60 @@ public class ConfigurationNode {
 	private Map<String, Object> children = new HashMap<String, Object>();
 
 	/**
-	 * Set a value
+	 * Get an Object value from the map
 	 * 
 	 * @param key
 	 *            The key
-	 * @param value
-	 *            The value
+	 * @return The value
 	 */
-	public void set(String key, Object value) {
-		children.put(key, value);
+	public Object get(String key) {
+		return children.get(key);
+	}
+
+	/**
+	 * Get a boolean value from this node
+	 * 
+	 * @param key
+	 *            The key of the value
+	 * @return The value, parsed as a boolean
+	 */
+	public boolean getBoolean(String key) {
+		return Boolean.parseBoolean(getString(key));
+	}
+
+	/**
+	 * Get a list of the children
+	 * 
+	 * @return The map
+	 */
+	public Map<String, Object> getChildren() {
+		return children;
+	}
+
+	/**
+	 * Get an integer value from this node
+	 * 
+	 * @param key
+	 *            The key of the value
+	 * @return The value, parsed as an integer
+	 */
+	public int getInteger(String key) {
+		return Integer.parseInt(getString(key));
+	}
+
+	/**
+	 * Get a string value from this node
+	 * 
+	 * @param string
+	 *            The key of the value
+	 * @return The string, or null
+	 */
+	public String getString(String string) {
+		Object value = get(string);
+		if (value instanceof String) {
+			return (String) value;
+		}
+		return "null";
 	}
 
 	/**
@@ -56,24 +101,6 @@ public class ConfigurationNode {
 	 */
 	public boolean has(String key) {
 		return children.containsKey(key);
-	}
-
-	/**
-	 * Get a sub-node for the specified name
-	 * 
-	 * @param name
-	 *            The name
-	 * @return The node
-	 */
-	public ConfigurationNode nodeFor(String name) {
-		if (children.containsKey(name)) {
-			Object value = children.get(name);
-			if (value.getClass() != this.getClass()) {
-				throw new ConfigurationException("Invalid node " + name + "!");
-			}
-			return (ConfigurationNode) value;
-		}
-		return null;
 	}
 
 	/**
@@ -101,65 +128,38 @@ public class ConfigurationNode {
 		builder.append("]");
 		return builder.toString();
 	}
-	
-	public String toString() {
-		return listChildren();
+
+	/**
+	 * Get a sub-node for the specified name
+	 * 
+	 * @param name
+	 *            The name
+	 * @return The node
+	 */
+	public ConfigurationNode nodeFor(String name) {
+		if (children.containsKey(name)) {
+			Object value = children.get(name);
+			if (value.getClass() != this.getClass()) {
+				throw new ConfigurationException("Invalid node " + name + "!");
+			}
+			return (ConfigurationNode) value;
+		}
+		return null;
 	}
 
 	/**
-	 * Get an Object value from the map
+	 * Set a value
 	 * 
 	 * @param key
 	 *            The key
-	 * @return The value
+	 * @param value
+	 *            The value
 	 */
-	public Object get(String key) {
-		return children.get(key);
+	public void set(String key, Object value) {
+		children.put(key, value);
 	}
 
-	/**
-	 * Get a string value from this node
-	 * 
-	 * @param string
-	 *            The key of the value
-	 * @return The string, or null
-	 */
-	public String getString(String string) {
-		Object value = get(string);
-		if (value instanceof String) {
-			return (String) value;
-		}
-		return "null";
-	}
-
-	/**
-	 * Get an integer value from this node
-	 * 
-	 * @param key
-	 *            The key of the value
-	 * @return The value, parsed as an integer
-	 */
-	public int getInteger(String key) {
-		return Integer.parseInt(getString(key));
-	}
-
-	/**
-	 * Get a boolean value from this node
-	 * 
-	 * @param key
-	 *            The key of the value
-	 * @return The value, parsed as a boolean
-	 */
-	public boolean getBoolean(String key) {
-		return Boolean.parseBoolean(getString(key));
-	}
-
-	/**
-	 * Get a list of the children
-	 * 
-	 * @return The map
-	 */
-	public Map<String, Object> getChildren() {
-		return children;
+	public String toString() {
+		return listChildren();
 	}
 }

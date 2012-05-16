@@ -42,11 +42,6 @@ public class ConfigurationParser {
 			.compile("\\s*(.*?)\\s*\"((?:\\\"|[^\"])+?)\"(;|)\\s*(?:\\#.*)?$");
 
 	/**
-	 * The pattern to match scalar lines ending with a ;
-	 */
-	private final Pattern newScalarPattern = Pattern.compile("\\s*(.*?)\\s+(.*[^;]);\\s*(?:#.*)?$");
-	
-	/**
 	 * The pattern to match arrays..
 	 */
 	private static final Pattern arrayPattern = Pattern
@@ -74,22 +69,32 @@ public class ConfigurationParser {
 	 * The file
 	 */
 	private File file;
-	
+
 	/**
 	 * The reader object which the configuration is parsed from
 	 */
 	private BufferedReader reader;
-	
+
 	/**
 	 * Create a new configuration parser
+	 * 
 	 * @param file
-	 * 			The file to parse, also used for includes
+	 *            The file to parse, also used for includes
 	 * @throws IOException
-	 * 			If an error occurred
+	 *             If an error occurred
 	 */
 	public ConfigurationParser(File file) throws IOException {
 		this.file = file;
 		this.reader = new BufferedReader(new FileReader(file));
+	}
+
+	/**
+	 * Used to close the reader in case it isn't used via parse()
+	 * 
+	 * @throws IOException
+	 */
+	public void close() throws IOException {
+		reader.close();
 	}
 
 	/**
@@ -121,23 +126,14 @@ public class ConfigurationParser {
 		if (!line.startsWith("#") && line.length() != 0) {
 			// Scalar match
 			Matcher scalar = scalarPattern.matcher(line);
-			Matcher newScalar = newScalarPattern.matcher(line);
 			Matcher array = arrayPattern.matcher(line);
 			Matcher nestedArrayBlock = nestedArrayPattern.matcher(line);
 			Matcher nestedHashBlock = nestedHashPattern.matcher(line);
-			if (newScalar.find()) {
-				String key = newScalar.group(1), value = newScalar.group(2);
-				if(key.equals("include_file")) {
-					ConfigurationParser parser = new ConfigurationParser(new File(file.getParentFile(), value));
-					parser.parse(node);
-					parser.close();
-				} else {
-					node.set(key, value);
-				}
-			} else if (scalar.find()) {
+			if (scalar.find()) {
 				String key = scalar.group(1), value = scalar.group(2);
-				if(key.equals("include_file")) {
-					ConfigurationParser parser = new ConfigurationParser(new File(value));
+				if (key.equals("include_file")) {
+					ConfigurationParser parser = new ConfigurationParser(
+							new File(file.getParentFile(), value));
 					parser.parse(node);
 					parser.close();
 				} else {
@@ -174,13 +170,5 @@ public class ConfigurationParser {
 			}
 		}
 		parse(node);
-	}
-	
-	/**
-	 * Used to close the reader in case it isn't used via parse()
-	 * @throws IOException
-	 */
-	public void close() throws IOException {
-		reader.close();
 	}
 }

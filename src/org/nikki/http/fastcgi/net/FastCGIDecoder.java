@@ -35,121 +35,134 @@ import org.nikki.http.fastcgi.FastCGIResponse;
 
 /**
  * A decoder to decode the FastCGI Response
+ * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIDecoder extends ReplayingDecoder<ResponseState> {
-	
+
 	/**
-	 * It's here for now, when the type is STDERR we could redirect it to a log file..
+	 * It's here for now, when the type is STDERR we could redirect it to a log
+	 * file..
 	 */
-	private static final Logger logger = Logger.getLogger(FastCGIDecoder.class.getName());
+	private static final Logger logger = Logger.getLogger(FastCGIDecoder.class
+			.getName());
 
 	/**
 	 * The FCGI version, usually the same
 	 */
 	@SuppressWarnings("unused")
 	private int version;
-	
+
 	/**
 	 * Request type
 	 */
 	private int type;
-	
+
 	/**
 	 * Request id, will be unique
 	 */
 	private int id;
-	
+
 	/**
 	 * Request length
 	 */
 	private int contentLength;
-	
+
 	/**
 	 * Request padding, if any
 	 */
 	private int paddingLength;
-	
+
 	/**
-	 * The data from each request, store it until we have all the data, then dispatch to the handler
+	 * The data from each request, store it until we have all the data, then
+	 * dispatch to the handler
 	 */
 	private HashMap<Integer, ChannelBuffer> dataBuffers = new HashMap<Integer, ChannelBuffer>();
-	
+
 	/**
 	 * Create a new FastCGIDecoder
 	 */
 	public FastCGIDecoder() {
 		super(ResponseState.VERSION);
 	}
-	
+
 	@Override
 	protected Object decode(ChannelHandlerContext arg0, Channel arg1,
-			ChannelBuffer buffer, ResponseState state)
-			throws Exception {
-		switch(state) {
+			ChannelBuffer buffer, ResponseState state) throws Exception {
+		switch (state) {
 		case VERSION:
 			version = buffer.readByte();
 			checkpoint(ResponseState.HEADER);
 		case HEADER:
-			//The types are unsigned in the FCGI docs
+			// The types are unsigned in the FCGI docs
 			type = buffer.readByte() & 0xFF;
 			id = buffer.readShort() & 0xFFFF;
 			contentLength = buffer.readShort() & 0xFFFF;
 			paddingLength = buffer.readByte() & 0xFFFF;
-			buffer.readByte(); //Reserved byte...
-			logger.finest("Read request header : type="+type+",id="+id+",contentLength="+contentLength+",paddingLength="+paddingLength);
+			buffer.readByte(); // Reserved byte...
+			logger.finest("Read request header : type=" + type + ",id=" + id
+					+ ",contentLength=" + contentLength + ",paddingLength="
+					+ paddingLength);
 			checkpoint(ResponseState.CONTENT);
 		case CONTENT:
-			switch(type) {
+			switch (type) {
 			case FCGI_END_REQUEST:
-				//Statuses, don't know what the correct use is, but FCGI_REQUEST_COMPLETE is one, and there's another status code...
+				// Statuses, don't know what the correct use is, but
+				// FCGI_REQUEST_COMPLETE is one, and there's another status
+				// code...
 				int appStatus = buffer.readInt();
 				int protocolStatus = buffer.readByte();
-				//Reserved bytes
+				// Reserved bytes
 				buffer.skipBytes(3);
-				if(appStatus != 0 || protocolStatus != FCGI_REQUEST_COMPLETE) {
-					//Uh oh, when we run a pool of connections we should close this one here...
-					logger.warning("Protocol status "+protocolStatus);
-				} else if(protocolStatus == FCGI_REQUEST_COMPLETE) {
-					//Reset the version
+				if (appStatus != 0 || protocolStatus != FCGI_REQUEST_COMPLETE) {
+					// Uh oh, when we run a pool of connections we should close
+					// this one here...
+					logger.warning("Protocol status " + protocolStatus);
+				} else if (protocolStatus == FCGI_REQUEST_COMPLETE) {
+					// Reset the version
 					checkpoint(ResponseState.VERSION);
-					//Merged from ChannelBuffer buffer ... dataBuffers.remove to this, remove() returns the object
+					// Merged from ChannelBuffer buffer ... dataBuffers.remove
+					// to this, remove() returns the object
 					return new FastCGIResponse(id, dataBuffers.remove(id));
 				}
 				checkpoint(ResponseState.VERSION);
 				break;
 			case FCGI_STDOUT:
-				if(contentLength > 0) {
-					//Have to store it, just in case we get a new request
-					if(!dataBuffers.containsKey(id)) {
+				if (contentLength > 0) {
+					// Have to store it, just in case we get a new request
+					if (!dataBuffers.containsKey(id)) {
 						dataBuffers.put(id, ChannelBuffers.dynamicBuffer());
 					}
-					logger.finest("Got "+contentLength+" bytes for request "+id);
-					//Write the bytes to the buffer
-					dataBuffers.get(id).writeBytes(buffer.readBytes(contentLength));
-					//Checkpoint!
+					logger.finest("Got " + contentLength
+							+ " bytes for request " + id);
+					// Write the bytes to the buffer
+					dataBuffers.get(id).writeBytes(
+							buffer.readBytes(contentLength));
+					// Checkpoint!
 					checkpoint(ResponseState.VERSION);
 				}
 				break;
-			//solaroperator pointed out this never contains HTML, I forgot a checkpoint so it stayed STDERR even with 0 bytes
+			// solaroperator pointed out this never contains HTML, I forgot a
+			// checkpoint so it stayed STDERR even with 0 bytes
 			case FCGI_STDERR:
 				byte[] err = new byte[contentLength];
 				buffer.readBytes(err);
-				
-				//TODO error logs
+
+				// TODO error logs
 				logger.warning(new String(err));
-				
-				//In the original version where this was commented out, this was never here, causing all data to go into STDERR
+
+				// In the original version where this was commented out, this
+				// was never here, causing all data to go into STDERR
 				checkpoint(ResponseState.VERSION);
 				break;
 			default:
-				logger.warning("Unknown type "+type);
+				logger.warning("Unknown type " + type);
 				checkpoint(ResponseState.VERSION);
 				break;
 			}
-			if(paddingLength > 0) {
-				logger.finest("Skipping "+paddingLength+" bytes of padding");
+			if (paddingLength > 0) {
+				logger.finest("Skipping " + paddingLength + " bytes of padding");
 				buffer.skipBytes(paddingLength);
 			}
 			break;

@@ -29,10 +29,10 @@ import org.nikki.http.HttpServer;
  * A basic netty channel handler
  * 
  * @author Nikki
- *
+ * 
  */
 public class HttpChannelHandler extends SimpleChannelUpstreamHandler {
-	
+
 	/**
 	 * The http session
 	 */
@@ -40,21 +40,23 @@ public class HttpChannelHandler extends SimpleChannelUpstreamHandler {
 
 	/**
 	 * Creates a new HTTPChannelHandler.
+	 * 
 	 * @param server
 	 */
 	public HttpChannelHandler(HttpServer server) {
 		this.session = new HttpSession(server);
 	}
-	
+
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) {
-		if(ctx.getChannel().isConnected()) {
+		if (ctx.getChannel().isConnected()) {
 			ctx.getChannel().close();
 		}
 	}
 
 	@Override
-	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
+			throws Exception {
 		Object message = e.getMessage();
 		if (message instanceof HttpRequest) {
 			session.handleRequest(ctx, (HttpRequest) message);

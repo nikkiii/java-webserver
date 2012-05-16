@@ -22,17 +22,17 @@ package org.nikki.http.util;
  * A basic class used to check conditions on an object
  * 
  * @author Nikki
- *
+ * 
  * @param <T>
  */
 public interface Filter<T> {
-	
+
 	/**
 	 * Check if a condition matches
+	 * 
 	 * @param t
-	 * 			The object
-	 * @return
-	 * 			The response
+	 *            The object
+	 * @return The response
 	 */
 	public boolean accept(T t);
 }

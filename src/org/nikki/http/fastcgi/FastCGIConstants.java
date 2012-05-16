@@ -22,12 +22,23 @@ package org.nikki.http.fastcgi;
  * A class containing all the FastCGI Constants
  * 
  * @author Nikki
- *
+ * 
  */
 public class FastCGIConstants {
+
+	/**
+	 * Value for version component of FCGI_Header
+	 */
+	
+	public static final int FCGI_VERSION = 1;
+
+	
+	/**
+	 * Values for type component of FCGI_Header
+	 */
 	
 	public static final int FCGI_BEGIN_REQUEST = 1;
-	
+
 	public static final int FCGI_ABORT_REQUEST = 2;
 
 	public static final int FCGI_END_REQUEST = 3;
@@ -39,19 +50,44 @@ public class FastCGIConstants {
 	public static final int FCGI_STDOUT = 6;
 
 	public static final int FCGI_STDERR = 7;
-	
+
 	public static final int FCGI_DATA = 8;
-	
+
 	public static final int FCGI_GET_VALUES = 9;
-	
+
 	public static final int FCGI_GET_VALUES_RESULT = 10;
+	
+	public static final int FCGI_UNKNOWN_TYPE = 11;
 
-	public static final int FCGI_RESPONDER = 1;
-
-	public static final int FCGI_VERSION = 1;
-
+	
+	/**
+	 * Mask for flags component of FCGI_BeginRequestBody
+	 */
+	
 	public static final int FCGI_KEEP_CONN = 1;
 
+	
+	/**
+	 * Values for role component of FCGI_BeginRequestBody
+	 */
+	
+	public static final int FCGI_RESPONDER = 1;
+	
+	public static final int FCGI_AUTHORIZER = 2;
+	
+	public static final int FCGI_FILTER = 3;
+	
+	
+	/**
+	 * Values for protocolStatus component of FCGI_EndRequestBody
+	 */
+	
 	public static final int FCGI_REQUEST_COMPLETE = 0;
+	
+	public static final int FCGI_CANT_MPX_CONN = 1;
+	
+	public static final int FCGI_OVERLOADED = 2;
+	
+	public static final int FCGI_UNKNOWN_ROLE = 3;
 
 }
