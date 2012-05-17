@@ -108,6 +108,13 @@ public class HttpSession {
 		sendHttpResponse(res, true);
 	}
 	
+	/**
+	 * Sends an HTTP Response with a flag whether to close or keep alive
+	 * @param res
+	 * 			The response
+	 * @param close
+	 * 			The flag
+	 */
 	public void sendHttpResponse(HttpResponse res, boolean close) {
 		if(!res.containsHeader("Server")) {
 			res.setHeader("Server", HttpServer.SERVER_SOFTWARE + " "
