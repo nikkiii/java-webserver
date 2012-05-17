@@ -62,7 +62,7 @@ public class HttpServer {
 	/**
 	 * The server version
 	 */
-	public static final String SERVER_VERSION = "0.1";
+	public static final String SERVER_VERSION = "1.0";
 
 	/**
 	 * The logger instance
