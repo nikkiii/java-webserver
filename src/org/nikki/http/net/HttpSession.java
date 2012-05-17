@@ -19,6 +19,7 @@
 package org.nikki.http.net;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -104,6 +105,17 @@ public class HttpSession {
 	 *            The http response.
 	 */
 	public void sendHttpResponse(HttpResponse res) {
-		channel.write(res).addListener(ChannelFutureListener.CLOSE);
+		sendHttpResponse(res, true);
+	}
+	
+	public void sendHttpResponse(HttpResponse res, boolean close) {
+		if(!res.containsHeader("Server")) {
+			res.setHeader("Server", HttpServer.SERVER_SOFTWARE + " "
+				+ HttpServer.SERVER_VERSION);
+		}
+		ChannelFuture future = channel.write(res);
+		if(close) {
+			future.addListener(ChannelFutureListener.CLOSE);
+		}
 	}
 }

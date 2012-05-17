@@ -198,7 +198,7 @@ public class HttpServer {
 			// Fix directories that don't end with /, more elegant
 			if (request.getUri().charAt(request.getUri().length() - 1) != '/') {
 				HttpResponse redirect = new DefaultHttpResponse(HTTP_1_1,
-						HttpResponseStatus.TEMPORARY_REDIRECT);
+						HttpResponseStatus.MOVED_PERMANENTLY);
 				redirect.addHeader("Location", request.getUri() + "/");
 				session.sendHttpResponse(redirect);
 				return;

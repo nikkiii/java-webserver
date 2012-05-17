@@ -126,10 +126,9 @@ public class StaticFileContentHandler implements ContentHandler {
 				// Now is when the weird part starts... using the system, the
 				// handler -should- return the response, but the response
 				// doesn't have the data... and it won't.
-				ChannelFuture future = channel.write(response);
-
+				session.sendHttpResponse(response, fileLength == 0);
+				
 				if (fileLength == 0) {
-					future.addListener(ChannelFutureListener.CLOSE);
 					return;
 				}
 				// Write the file
