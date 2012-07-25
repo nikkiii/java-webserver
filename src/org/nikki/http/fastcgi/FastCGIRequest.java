@@ -132,8 +132,6 @@ public class FastCGIRequest {
 
 	/**
 	 * Construct the request
-	 * 
-	 * @return The request id
 	 */
 	public void construct() {
 		// The request id is for our records, just so we don't mix them up... if

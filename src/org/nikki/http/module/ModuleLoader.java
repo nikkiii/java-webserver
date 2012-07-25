@@ -89,8 +89,8 @@ public class ModuleLoader {
 	/**
 	 * Register a module
 	 * 
-	 * @param plugin
-	 *            The plugin to register
+	 * @param module
+	 *            The module to register
 	 */
 	public void register(ServerModule module) {
 		try {

@@ -47,7 +47,8 @@ public class FastCGIChannelHandler extends SimpleChannelUpstreamHandler {
 	/**
 	 * Creates a new HTTPChannelHandler.
 	 * 
-	 * @param server
+	 * @param module
+	 * 			The FastCGI Module
 	 */
 	public FastCGIChannelHandler(FastCGIModule module) {
 		this.module = module;

@@ -29,7 +29,7 @@ import org.nikki.http.content.ContentHandler;
 public abstract class ContentModule extends ServerModule {
 
 	/**
-	 * @see org.nikki.http.impl.ContentManager.registerExtension(extension,
+	 * @see org.nikki.http.content.ContentManager.registerExtension(extension,
 	 *      handler)
 	 */
 	public void registerExtension(String extension, ContentHandler handler) {

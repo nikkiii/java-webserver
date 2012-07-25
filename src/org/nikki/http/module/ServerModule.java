@@ -38,6 +38,7 @@ public abstract class ServerModule {
 	 * The plugin should override this..
 	 * 
 	 * @return
+	 * 		The class name by default
 	 */
 	public String getName() {
 		return this.getClass().getName();
