@@ -21,10 +21,8 @@ package org.nikki.http.content;
 import org.nikki.http.net.HttpSession;
 
 /**
- * A class representing a server content handler 
- * A content handler can be any of the following: 
- * - A simple static file reader 
- * - A request handler for Modules
+ * A class representing a server content handler A content handler can be any of
+ * the following: - A simple static file reader - A request handler for Modules
  * 
  * @author Nikki
  * 

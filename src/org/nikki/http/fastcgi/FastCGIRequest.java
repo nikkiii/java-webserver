@@ -177,14 +177,15 @@ public class FastCGIRequest {
 
 		// TODO for different document roots/non testing cases, the path won't
 		// be like this
-		File path = new File(session.getServer().getDocumentRoot(), fileUri);
+		File path = new File(session.getVirtualHost().getDocumentRoot(),
+				fileUri);
 
 		addHeader("SCRIPT_FILENAME", path.getAbsolutePath().replace('\\', '/'));
 		addHeader("SCRIPT_NAME", fileUri);
 
 		addHeader("QUERY_STRING", queryString);
 
-		addHeader("DOCUMENT_ROOT", session.getServer().getDocumentRoot()
+		addHeader("DOCUMENT_ROOT", session.getVirtualHost().getDocumentRoot()
 				.getAbsolutePath().replace('\\', '/'));
 
 		for (Entry<String, String> entry : request.getHeaders()) {

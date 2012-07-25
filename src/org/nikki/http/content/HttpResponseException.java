@@ -3,10 +3,11 @@ package org.nikki.http.content;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 
 /**
- * An exception used to specify that the handler had a problem, and that the server should return an error response
+ * An exception used to specify that the handler had a problem, and that the
+ * server should return an error response
  * 
  * @author Nikki
- *
+ * 
  */
 public class HttpResponseException extends Exception {
 
@@ -22,8 +23,9 @@ public class HttpResponseException extends Exception {
 
 	/**
 	 * Construct a new exception
+	 * 
 	 * @param status
-	 * 			The HTTP Status to return
+	 *            The HTTP Status to return
 	 */
 	public HttpResponseException(HttpResponseStatus status) {
 		this.status = status;
@@ -31,8 +33,8 @@ public class HttpResponseException extends Exception {
 
 	/**
 	 * Get the status
-	 * @return
-	 * 		The HTTP Status
+	 * 
+	 * @return The HTTP Status
 	 */
 	public HttpResponseStatus getStatus() {
 		return status;

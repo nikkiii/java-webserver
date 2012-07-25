@@ -81,7 +81,7 @@ public class FastCGIModule extends ContentModule {
 	/**
 	 * Connect the FastCGI Socket
 	 */
-	public void connect() {
+	public void connect(final Runnable callback) {
 		ChannelFuture future = bootstrap.connect(address);
 		future.addListener(new ChannelFutureListener() {
 
@@ -89,8 +89,10 @@ public class FastCGIModule extends ContentModule {
 			public void operationComplete(ChannelFuture arg0) throws Exception {
 				if (arg0.isSuccess()) {
 					channel = arg0.getChannel();
+					if (callback != null) {
+						callback.run();
+					}
 				} else {
-					// TODO disable the module or something...
 					arg0.getCause().printStackTrace();
 				}
 			}
@@ -116,13 +118,17 @@ public class FastCGIModule extends ContentModule {
 	 *            The session which requested it
 	 * @return Always null, since the result is sent back by the handler
 	 */
-	public boolean handle(HttpSession session) {
+	public boolean handle(final HttpSession session) {
 		if (!channel.isConnected()) {
-			// TODO cheap hack for max requests, we should make a callback for
-			// connect() so we can make it finish our request
-			connect();
-			// Send an error
-			return false;
+			// TODO Cheap way to finish this request, could do something better
+			// later...
+			connect(new Runnable() {
+				@Override
+				public void run() {
+					handle(session);
+				}
+			});
+			return true;
 		}
 		try {
 			requestId++;
@@ -167,7 +173,7 @@ public class FastCGIModule extends ContentModule {
 		}
 
 		// TODO messy connection :(
-		connect();
+		connect(null);
 
 		FastCGIContentHandler handler = new FastCGIContentHandler(this);
 		if (configuration.has("extensions")) {

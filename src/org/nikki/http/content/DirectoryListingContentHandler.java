@@ -110,7 +110,7 @@ public class DirectoryListingContentHandler implements ContentHandler {
 
 	@Override
 	public void handleRequest(HttpSession session) throws HttpResponseException {
-		File directory = new File(session.getServer().getDocumentRoot(),
+		File directory = new File(session.getVirtualHost().getDocumentRoot(),
 				session.getRequest().getUri());
 		String filePath = session.getRequest().getUri();
 		if (directory.exists()) {
@@ -125,8 +125,11 @@ public class DirectoryListingContentHandler implements ContentHandler {
 			StringBuilder fileList = new StringBuilder();
 			for (File file : directories) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName() + "\">" + file.getName() + "</a>/</td>")
-						.append("<td class=\"m\">" + getModified(file) + "</td>")
+						.append("<td class=\"n\"><a href=\"" + filePath + "/"
+								+ file.getName() + "\">" + file.getName()
+								+ "</a>/</td>")
+						.append("<td class=\"m\">" + getModified(file)
+								+ "</td>")
 						.append("<td class=\"s\">- &nbsp;</td>")
 						.append("<td class=\"t\">Directory</td>")
 						.append("</tr>").append("\n");
@@ -141,10 +144,16 @@ public class DirectoryListingContentHandler implements ContentHandler {
 			Collections.sort(files);
 			for (File file : files) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/" + file.getName() + "\">" + file.getName() + "</a></td>")
-						.append("<td class=\"m\">" + getModified(file) + "</td>")
-						.append("<td class=\"s\">" + FileUtil.humanReadableByteCount(file.length()) + "</td>")
-						.append("<td class=\"t\">" + getMimeType(file.getName()) + "</td>")
+						.append("<td class=\"n\"><a href=\"" + filePath + "/"
+								+ file.getName() + "\">" + file.getName()
+								+ "</a></td>")
+						.append("<td class=\"m\">" + getModified(file)
+								+ "</td>")
+						.append("<td class=\"s\">"
+								+ FileUtil.humanReadableByteCount(file.length())
+								+ "</td>")
+						.append("<td class=\"t\">"
+								+ getMimeType(file.getName()) + "</td>")
 						.append("</tr>").append("\n");
 			}
 			String string = base.replace("{directory}", session.getRequest()
@@ -161,8 +170,8 @@ public class DirectoryListingContentHandler implements ContentHandler {
 
 			// Send the response
 			session.sendHttpResponse(response);
-			
-			//Prevent the error below
+
+			// Prevent the error below
 			return;
 		}
 		throw new HttpResponseException(

@@ -18,8 +18,6 @@
 
 package org.nikki.http.content;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.setContentLength;
-
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.text.ParseException;
@@ -57,12 +55,12 @@ public class StaticFileContentHandler implements ContentHandler {
 	 * The date format used by common browsers
 	 */
 	public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-	
+
 	/**
 	 * The timezone
 	 */
 	public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-	
+
 	/**
 	 * How long the cached file should last for (before being checked)
 	 */
@@ -71,12 +69,12 @@ public class StaticFileContentHandler implements ContentHandler {
 	@Override
 	public void handleRequest(HttpSession session) throws HttpResponseException {
 		HttpRequest request = session.getRequest();
-		//Query string messes with our file paths
+		// Query string messes with our file paths
 		String uri = request.getUri();
 		if (uri.indexOf('?') != -1) {
 			uri = uri.substring(0, uri.indexOf('?'));
 		}
-		File file = new File(session.getServer().getDocumentRoot(), uri);
+		File file = new File(session.getVirtualHost().getDocumentRoot(), uri);
 		if (file.exists() && !file.isDirectory()) {
 			Channel channel = session.getChannel();
 
@@ -119,18 +117,21 @@ public class StaticFileContentHandler implements ContentHandler {
 				HttpResponse response = new DefaultHttpResponse(
 						HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 
-				setContentLength(response, fileLength);
+				HttpHeaders.setContentLength(response, fileLength);
+				
 				setDateAndCacheHeaders(response, file);
-				response.setHeader(HttpHeaders.Names.CONTENT_TYPE, MimeUtil.getMimeType(file.getName()));
+				response.setHeader(HttpHeaders.Names.CONTENT_TYPE,
+						MimeUtil.getMimeType(file.getName()));
 
 				// Now is when the weird part starts... using the system, the
 				// handler -should- return the response, but the response
 				// doesn't have the data... and it won't.
 				session.sendHttpResponse(response, fileLength == 0);
-				
+
 				if (fileLength == 0) {
 					return;
 				}
+				
 				// Write the file
 				final FileRegion region = new DefaultFileRegion(
 						raf.getChannel(), 0, fileLength);

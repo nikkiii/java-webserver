@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -45,6 +46,7 @@ import org.nikki.http.module.ModuleLoader;
 import org.nikki.http.net.HttpServerPipeline;
 import org.nikki.http.net.HttpSession;
 import org.nikki.http.util.MimeUtil;
+import org.nikki.http.vhost.VirtualHost;
 
 /**
  * A basic HTTP Server implementation
@@ -132,6 +134,11 @@ public class HttpServer {
 	private final ServerBootstrap bootstrap = new ServerBootstrap();
 
 	/**
+	 * The virtual hosts
+	 */
+	private Map<String, VirtualHost> vhosts = new HashMap<String, VirtualHost>();
+
+	/**
 	 * Construct a new HttpServer
 	 */
 	public HttpServer() {
@@ -171,15 +178,43 @@ public class HttpServer {
 		if (uri.indexOf('?') != -1) {
 			uri = uri.substring(0, uri.indexOf('?'));
 		}
+
+		//Set the default vhost
+		VirtualHost vhost = vhosts.get("default");
+		//If the request contains the host header, check for vhosts
+		if(request.containsHeader("Host")) {
+			//Get the header
+			String host = request.getHeader("Host");
+			//Strip out the port (TODO ipv6, this will mess with it!)
+			if (host.contains(":")) {
+				host = host.substring(0, host.indexOf(':'));
+			}
+
+			// Check for our vhost
+			if (vhosts.containsKey(host)) {
+				vhost = vhosts.get(host);
+			}
+		}
+		
+		// Set either the default one or the one we found
+		session.setVirtualHost(vhost);
+
 		// Construct the file path here
-		File requestFile = new File(documentRoot, uri);
+		File requestFile = new File(vhost.getDocumentRoot(), uri);
 
 		// Netty doesn't do it's own verification of URIs
 		try {
 			// Such a small method was overlooked and one of the testers found
 			// my bash history/passwd file using it, oops...
-			if (!requestFile.getCanonicalPath().startsWith(
-					documentRoot.getAbsolutePath())) {
+			String requestPath = requestFile.getCanonicalPath();
+			if(requestPath.endsWith("/")) {
+				requestPath = requestPath.substring(0, requestPath.length()-2);
+			}
+			String vhostRoot = vhost.getDocumentRoot().getAbsolutePath();
+			if(vhostRoot.endsWith("/")) {
+				vhostRoot = vhostRoot.substring(0, vhostRoot.length()-2);
+			}
+			if (!requestPath.startsWith(vhostRoot)) {
 				sendHttpError(session, HttpResponseStatus.BAD_REQUEST);
 				return;
 			}
@@ -191,7 +226,7 @@ public class HttpServer {
 		}
 
 		// Phew, now that the verification is done...
-		
+
 		// Indexes
 		if (requestFile.isDirectory()) {
 			boolean found = false;
@@ -215,7 +250,8 @@ public class HttpServer {
 			if (!found) {
 				if (directoryListingEnabled) {
 					try {
-						contentManager.getDirectoryListHandler().handleRequest(session);
+						contentManager.getDirectoryListHandler().handleRequest(
+								session);
 					} catch (HttpResponseException e) {
 						sendHttpError(session, e.getStatus());
 					}
@@ -223,7 +259,8 @@ public class HttpServer {
 				}
 			}
 		}
-		ContentHandler handler = contentManager.getHandlerFor(session.getRequest());
+		ContentHandler handler = contentManager.getHandlerFor(session
+				.getRequest());
 		try {
 			if (handler == null) {
 				throw new HttpResponseException(HttpResponseStatus.NOT_FOUND);
@@ -297,6 +334,25 @@ public class HttpServer {
 					.entrySet()) {
 				moduleLoader.loadModule(child.getKey(),
 						(ConfigurationNode) child.getValue());
+			}
+		}
+		ConfigurationNode vhostsNode = config.nodeFor("vhosts");
+		if (vhostsNode.has("vhost")) {
+			ConfigurationNode vhost = vhostsNode.nodeFor("vhost");
+			for (Map.Entry<String, Object> child : vhost.getChildren()
+					.entrySet()) {
+				ConfigurationNode vhostNode = (ConfigurationNode) child
+						.getValue();
+				File vhostDocumentRoot = new File(documentRoot,
+						vhostNode.getString("document_root"));
+				if (vhostDocumentRoot.exists()) {
+					vhosts.put(child.getKey(), new VirtualHost(child.getKey(),
+							vhostDocumentRoot));
+				} else {
+					throw new IllegalArgumentException(
+							"Virtual host document root is not valid : "
+									+ vhostDocumentRoot);
+				}
 			}
 		}
 	}

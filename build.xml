@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<project name="JavaHttpd" default="build" basedir=".">
+    <property name="root" location="." />
+    <property name="src" location="src" />
+    <property name="bin" location="bin" />
+    <property name="doc" location="doc" />
+    <property name="lib" location="lib" />
+
+    <path id="binaries">
+        <pathelement path="${bin}" />
+    </path>
+
+    <path id="master">
+        <path refid="binaries" />
+    </path>
+
+    <path id="libraries">
+        <fileset dir="${lib}">
+            <include name="*.jar" />
+        </fileset>
+    </path>
+
+    <fileset id="sources" dir="${src}">
+        <include name="**/*.java" />
+    </fileset>
+
+    <target name="init">
+        <mkdir dir="${bin}" />
+        <mkdir dir="${doc}" />
+    </target>
+
+    <target name="build" depends="init">
+        <javac srcdir="${src}" destdir="${bin}" includeantruntime="false">
+            <classpath refid="libraries" />
+        </javac>
+        <tstamp/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${bin}" />
+        <delete dir="${doc}" />
+    </target>
+
+    <target name="rebuild" depends="clean, build" />
+
+    <target name="doc" depends="build">
+        <javadoc sourcepath="${src}" access="private" destdir="${doc}" windowtitle="JavaHttpd">
+            <doctitle>
+                <![CDATA[<h1>JavaHttpd</h1>]]>
+            </doctitle>
+        </javadoc>
+    </target>
+
+    <target name="dist" description="generate the distribution">        
+        <!-- Put everything in ${bin} into the javahttpd.jar file -->
+        <jar jarfile="javahttpd.jar">
+            <fileset dir="${bin}" />
+            <manifest>
+                <attribute name="Main-Class" value="org.nikki.http.HttpServer"/>
+            </manifest>
+            <archives>
+                <zips>
+                    <fileset dir="lib" includes="*.jar" />
+                </zips>
+            </archives>
+        </jar>
+    </target>
+</project>

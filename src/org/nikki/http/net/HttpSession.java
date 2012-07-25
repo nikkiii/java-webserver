@@ -25,6 +25,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.nikki.http.HttpServer;
+import org.nikki.http.vhost.VirtualHost;
 
 /**
  * Represents an HTTP Session/Request
@@ -38,6 +39,11 @@ public class HttpSession {
 	 * The server instance
 	 */
 	private HttpServer server;
+
+	/**
+	 * The Virtual Host this session is requesting by
+	 */
+	private VirtualHost virtualHost;
 
 	/**
 	 * The request object
@@ -107,22 +113,31 @@ public class HttpSession {
 	public void sendHttpResponse(HttpResponse res) {
 		sendHttpResponse(res, true);
 	}
-	
+
 	/**
 	 * Sends an HTTP Response with a flag whether to close or keep alive
+	 * 
 	 * @param res
-	 * 			The response
+	 *            The response
 	 * @param close
-	 * 			The flag
+	 *            The flag
 	 */
 	public void sendHttpResponse(HttpResponse res, boolean close) {
-		if(!res.containsHeader("Server")) {
+		if (!res.containsHeader("Server")) {
 			res.setHeader("Server", HttpServer.SERVER_SOFTWARE + " "
-				+ HttpServer.SERVER_VERSION);
+					+ HttpServer.SERVER_VERSION);
 		}
 		ChannelFuture future = channel.write(res);
-		if(close) {
+		if (close) {
 			future.addListener(ChannelFutureListener.CLOSE);
 		}
+	}
+
+	public void setVirtualHost(VirtualHost virtualHost) {
+		this.virtualHost = virtualHost;
+	}
+
+	public VirtualHost getVirtualHost() {
+		return virtualHost;
 	}
 }

@@ -17,10 +17,10 @@ import org.nikki.http.util.FileUtil;
  * A manager for the error page files
  * 
  * @author Nikki
- *
+ * 
  */
 public class ErrorManager {
-	
+
 	/**
 	 * The HTTP Server
 	 */
