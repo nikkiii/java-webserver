@@ -125,7 +125,7 @@ public class DirectoryListingContentHandler implements ContentHandler {
 			StringBuilder fileList = new StringBuilder();
 			for (File file : directories) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/"
+						.append("<td class=\"n\"><a href=\"" + filePath 
 								+ file.getName() + "\">" + file.getName()
 								+ "</a>/</td>")
 						.append("<td class=\"m\">" + getModified(file)
@@ -144,7 +144,7 @@ public class DirectoryListingContentHandler implements ContentHandler {
 			Collections.sort(files);
 			for (File file : files) {
 				fileList.append("<tr>")
-						.append("<td class=\"n\"><a href=\"" + filePath + "/"
+						.append("<td class=\"n\"><a href=\"" + filePath
 								+ file.getName() + "\">" + file.getName()
 								+ "</a></td>")
 						.append("<td class=\"m\">" + getModified(file)
