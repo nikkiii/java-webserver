@@ -45,7 +45,9 @@ import org.nikki.http.content.HttpResponseException;
 import org.nikki.http.module.ModuleLoader;
 import org.nikki.http.net.HttpServerPipeline;
 import org.nikki.http.net.HttpSession;
+import org.nikki.http.util.CLIUtil;
 import org.nikki.http.util.MimeUtil;
+import org.nikki.http.util.CLIUtil.CLIArguments;
 import org.nikki.http.vhost.VirtualHost;
 
 /**
@@ -79,13 +81,24 @@ public class HttpServer {
 	 *            The commandline args
 	 */
 	public static void main(String[] args) {
+		CLIArguments arguments = CLIUtil.parseArguments(args);
+		logger.info("Starting...");
 		HttpServer server = new HttpServer();
 		try {
-			server.loadConfig(new File("conf/http.conf"));
+			String configFile = "conf/http.conf";
+			if(arguments.hasAny("config", "c")) {
+				configFile = arguments.getString("config", "c");
+			}
+			File config = new File(configFile);
+			if(!config.exists()) {
+				logger.severe("Configuration file does not exist!");
+				return;
+			}
+			server.loadConfig(config);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		server.start();
+		server.start(arguments);
 	}
 
 	/**
@@ -299,20 +312,24 @@ public class HttpServer {
 					HttpVersion.HTTP_1_1, status));
 		}
 	}
+	
+	/**
+	 * Start the server completely from the configuration files, ignoring any commandline arguments
+	 */
+	public void start() {
+		start(null);
+	}
 
 	/**
 	 * Start the server with the port from the configuration
+	 * @param arguments 
 	 */
-	public void start() {
+	public void start(CLIArguments arguments) {
 		if (config == null) {
 			throw new IllegalArgumentException("Configuration file not loaded!");
 		}
 		ConfigurationNode server = config.nodeFor("server");
-		if (server.has("listen_port")) {
-			start(new InetSocketAddress(server.getInteger("listen_port")));
-		} else {
-			throw new IllegalArgumentException("No port to listen on!");
-		}
+		//Load the basic settings first
 		if (server.has("document_root")) {
 			documentRoot = new File(server.getString("document_root"));
 		} else {
@@ -336,6 +353,7 @@ public class HttpServer {
 						(ConfigurationNode) child.getValue());
 			}
 		}
+		//Load the vhosts, nested in the 'vhosts' node by the config loading method
 		ConfigurationNode vhostsNode = config.nodeFor("vhosts");
 		if (vhostsNode.has("vhost")) {
 			ConfigurationNode vhost = vhostsNode.nodeFor("vhost");
@@ -355,12 +373,24 @@ public class HttpServer {
 				}
 			}
 		}
+		
+		//Moved from top -> bottom, since we should configure it all first!
+		if (arguments != null && arguments.hasAny("port", "p") || server.has("listen_port")) {
+			int port = server.getInteger("listen_port");
+			if(arguments.hasAny("port", "p")) {
+				port = arguments.getInteger("port", "p");
+			}
+			//Start the server on the specified port!
+			bind(new InetSocketAddress(port));
+		} else {
+			throw new IllegalArgumentException("No port to listen on!");
+		}
 	}
 
 	/**
 	 * Start the server
 	 */
-	public void start(SocketAddress address) {
+	public void bind(SocketAddress address) {
 		bootstrap.setPipelineFactory(new HttpServerPipeline(this));
 		bootstrap
 				.setFactory(new NioServerSocketChannelFactory(service, service));

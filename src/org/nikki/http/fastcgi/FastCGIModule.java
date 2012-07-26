@@ -108,7 +108,7 @@ public class FastCGIModule extends ContentModule {
 	 * @return The session attached to the id
 	 */
 	public HttpSession getRequest(int id) {
-		return requests.remove(id);
+		return requests.get(id);
 	}
 
 	/**

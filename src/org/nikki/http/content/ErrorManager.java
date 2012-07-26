@@ -16,6 +16,8 @@ import org.nikki.http.util.FileUtil;
 /**
  * A manager for the error page files
  * 
+ * TODO make this use the static content manager instead of the fixed buffer size
+ * 
  * @author Nikki
  * 
  */

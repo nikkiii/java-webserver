@@ -22,8 +22,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.FileNameMap;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
@@ -40,6 +38,7 @@ import org.nikki.http.HttpServer;
 import org.nikki.http.net.HttpSession;
 import org.nikki.http.util.FileUtil;
 import org.nikki.http.util.Filter;
+import org.nikki.http.util.MimeUtil;
 
 /**
  * A ContentHandler to handle directory listings
@@ -50,14 +49,9 @@ import org.nikki.http.util.Filter;
 public class DirectoryListingContentHandler implements ContentHandler {
 
 	/**
-	 * Load it into memory, it's not a big deal
+	 * Load it into memory, we shouldn't need to load a file that's maybe 10kb every time it's requested!
 	 */
 	private String base;
-
-	/**
-	 * The file name map used for getting content types
-	 */
-	private FileNameMap fileNameMap = URLConnection.getFileNameMap();
 
 	/**
 	 * The date modified format
@@ -94,7 +88,7 @@ public class DirectoryListingContentHandler implements ContentHandler {
 	 * @return The file type
 	 */
 	public String getMimeType(String fileName) {
-		return fileNameMap.getContentTypeFor(fileName);
+		return MimeUtil.getMimeType(fileName);
 	}
 
 	/**
@@ -175,6 +169,6 @@ public class DirectoryListingContentHandler implements ContentHandler {
 			return;
 		}
 		throw new HttpResponseException(
-				HttpResponseStatus.INTERNAL_SERVER_ERROR);
+				HttpResponseStatus.NOT_FOUND);
 	}
 }

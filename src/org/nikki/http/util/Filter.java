@@ -30,9 +30,9 @@ public interface Filter<T> {
 	/**
 	 * Check if a condition matches
 	 * 
-	 * @param t
+	 * @param object
 	 *            The object
 	 * @return The response
 	 */
-	public boolean accept(T t);
+	public boolean accept(T object);
 }

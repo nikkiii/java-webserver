@@ -19,12 +19,6 @@ import org.nikki.http.configuration.ConfigurationParser;
  */
 public class MimeUtil {
 
-	public static void main(String[] args) {
-		MimeUtil.loadTypes();
-		System.out.println("CSS Type: " + getMimeType("test.css"));
-		System.out.println("JS Type: " + getMimeType("test.js"));
-	}
-
 	/**
 	 * The logger
 	 */

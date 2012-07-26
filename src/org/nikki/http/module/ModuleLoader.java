@@ -105,10 +105,10 @@ public class ModuleLoader {
 	}
 
 	/**
-	 * Unregister a plugin
+	 * Unregister a module
 	 * 
-	 * @param plugin
-	 *            The plugin to unregister
+	 * @param module
+	 *            The module to unregister
 	 */
 	public void unregister(ServerModule module) {
 		try {
